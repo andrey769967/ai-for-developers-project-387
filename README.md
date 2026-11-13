@@ -120,6 +120,7 @@ npm run check
 - `AGENTS.md` — правила проекта для агента: команды, архитектура, подводные камни
 - `docs/agents/` — как ведётся трекер задач, какие метки триажа используются, где живут доменные документы
 - `GLOSSARY.md` и `docs/adr/` — единый словарь домена и принятые архитектурные решения
+- `.agents/skills/` — библиотека скиллов агента (MIT), подключается через `opencode.json`; лежит в репозитории, чтобы быть доступной на раннере
 - `.github/workflows/ci.yml` запускает `npm run check` на каждый pull request и push в `main`
 - `.github/workflows/opencode.yml` — агент opencode в GitHub Actions
   - события `issue_comment` и `pull_request_review_comment` (`types: [created]`); триггер — `/opencode <задача>` или `/oc` строчными, набор команд задан в `mentions`
