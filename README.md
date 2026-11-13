@@ -121,7 +121,12 @@ npm run check
 - `docs/agents/` — как ведётся трекер задач, какие метки триажа используются, где живут доменные документы
 - `GLOSSARY.md` и `docs/adr/` — единый словарь домена и принятые архитектурные решения
 - `.github/workflows/ci.yml` запускает `npm run check` на каждый pull request и push в `main`
-- `.github/workflows/opencode.yml` запускает агента по комментарию `/opencode <задача>` (или `/oc`) в issue или PR
+- `.github/workflows/opencode.yml` — агент opencode в GitHub Actions
+  - триггер: `/opencode <задача>` или `/oc` строчными в issue, PR или на строке диффа
+  - в issue агент отвечает в треде, при правках создаёт ветку и PR; в PR коммитит в его ветку
+  - запускать может только OWNER/MEMBER/COLLABORATOR; один прогон на issue/PR, тайм-аут 30 минут
+  - модель — `opencode/deepseek-v4.1-flash`, переопределяется переменной `OPENCODE_MODEL`
+  - нужны приложение opencode-agent и секрет `OPENCODE_API_KEY`; сессии на opencode.ai не публикуются
 
 ## Структура проекта
 
