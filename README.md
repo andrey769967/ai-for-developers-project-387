@@ -121,6 +121,7 @@ npm run check
 - `docs/agents/` — как ведётся трекер задач, какие метки триажа используются, где живут доменные документы
 - `GLOSSARY.md` и `docs/adr/` — единый словарь домена и принятые архитектурные решения
 - `.github/workflows/ci.yml` запускает `npm run check` на каждый pull request и push в `main`
+- `.github/workflows/opencode.yml` запускает агента по комментарию `/opencode <задача>` (или `/oc`) в issue или PR
 
 ## Структура проекта
 
