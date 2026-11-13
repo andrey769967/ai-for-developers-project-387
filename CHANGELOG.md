@@ -1,5 +1,7 @@
 # Changelog
 
+> Релиз 1.0.0 ниже выпущен в репозитории [ai-for-developers-project-386](https://github.com/andrey769967/ai-for-developers-project-386): приложение перенесено сюда без изменения кода. Новые записи release-please добавляет в этот файл.
+
 ## 1.0.0 (2026-11-13)
 
 
