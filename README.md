@@ -122,11 +122,11 @@ npm run check
 - `GLOSSARY.md` и `docs/adr/` — единый словарь домена и принятые архитектурные решения
 - `.github/workflows/ci.yml` запускает `npm run check` на каждый pull request и push в `main`
 - `.github/workflows/opencode.yml` — агент opencode в GitHub Actions
-  - триггер: `/opencode <задача>` или `/oc` строчными в issue, PR или на строке диффа
+  - события `issue_comment` и `pull_request_review_comment` (`types: [created]`); триггер — `/opencode <задача>` или `/oc` строчными, набор команд задан в `mentions`
   - в issue агент отвечает в треде, при правках создаёт ветку и PR; в PR коммитит в его ветку
   - запускать может только OWNER/MEMBER/COLLABORATOR; один прогон на issue/PR, тайм-аут 30 минут
   - модель — `opencode/deepseek-v4.1-flash`, переопределяется переменной `OPENCODE_MODEL`
-  - нужны приложение opencode-agent и секрет `OPENCODE_API_KEY`; сессии на opencode.ai не публикуются
+  - нужны приложение opencode-agent и секрет `OPENCODE_API_KEY`; сессии на opencode.ai не публикуются (`share: false`)
 
 ## Структура проекта
 
