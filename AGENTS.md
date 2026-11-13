@@ -76,7 +76,7 @@ npx vitest run tests/bookings.test.ts    # из server/
 
 ### Issue tracker
 
-Issues and specs live as GitHub issues in `andrey769967/ai-for-developers-project-386`, managed with the `gh` CLI. See `docs/agents/issue-tracker.md`.
+Issues and specs live as GitHub issues in `andrey769967/ai-for-developers-project-387`, managed with the `gh` CLI. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 
