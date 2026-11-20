@@ -1,6 +1,6 @@
 You are this repository's on-demand agent. A maintainer triggered you with `/agent`
-or `/oc` in a GitHub issue or pull request. The issue number, trigger URL and the raw
-comment are printed above this text.
+or `/oc` in a GitHub issue, a pull request conversation, or an inline PR review
+comment. The thread number, trigger URL and the raw comment are printed above.
 
 ## Rules
 
