@@ -97,9 +97,15 @@ docker run --rm -p 3000:3000 call-booking
 
 ## Вызов агента из комментария
 
-Комментарий `/agent <задача>` или `/oc <задача>` в issue, обсуждении PR или прямо в diff PR запускает GitHub Action: агент выбирает нужный скилл (`to-spec`, `to-tickets`, `implement-spec`), работает с трекером и публикует короткий бриф обратно в ту же нить. Запускать могут только владелец, участник или коллаборатор репозитория.
+Комментарий `/agent <задача>` или `/oc <задача>` в issue, обсуждении PR или прямо в diff PR запускает GitHub Action (события `issue_comment` и `pull_request_review_comment`): агент выбирает нужный скилл (`to-spec`, `to-tickets`, `implement-spec`), работает с трекером и публикует короткий бриф обратно в ту же нить. Запускать могут только владелец, участник или коллаборатор репозитория.
 
-Нужны секрет `OPENCODE_API_KEY` (или ключ другого провайдера) и опциональная переменная `OPENCODE_MODEL`. Подробности — в [`docs/agents/comment-workflow.md`](docs/agents/comment-workflow.md).
+Нужны секрет `OPENCODE_API_KEY` (или ключ другого провайдера) и опциональная переменная `OPENCODE_MODEL` (по умолчанию `opencode/deepseek-v4.1-flash`). Подробности — в [`docs/agents/comment-workflow.md`](docs/agents/comment-workflow.md).
+
+## Автотриаж новых обращений
+
+Новый issue от владельца, участника или коллаборатора (не от бота) проходит первичную триаж-проверку: событие `issues: opened` запускает скилл `@triage`, который ставит категорию `bug`/`enhancement` и одно состояние из `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. При нехватке данных агент выбирает `needs-info` и публикует конкретные вопросы автору. Тикеты и спеки с меткой `ready-for-agent` (созданные `to-tickets` / `to-spec`) пропускаются.
+
+Ограничения: `timeout-minutes: 30`, `concurrency` по номеру issue с `cancel-in-progress: false`, права `contents: read` и `issues: write`. Модель и ключ те же: переменная `OPENCODE_MODEL` и секрет `OPENCODE_API_KEY`. Подробности — в [`docs/agents/auto-triage.md`](docs/agents/auto-triage.md).
 
 ## Локальная разработка
 
