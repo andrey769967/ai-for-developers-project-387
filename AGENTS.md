@@ -94,5 +94,9 @@ The first project is `andrey769967/ai-for-developers-project-386`. Its normative
 
 A `/agent ...` or `/oc ...` comment on an issue, a PR conversation, or an inline PR review runs the repository agent via GitHub Actions. It picks the right skill (`to-spec`, `to-tickets`, `implement-spec`) and posts a brief back to the thread. See `docs/agents/comment-workflow.md`.
 
+### Auto-triage of new issues
+
+A new issue from a trusted author is triaged automatically with the `@triage` skill. Bots and issues already labelled `ready-for-agent` are skipped. See `docs/agents/auto-triage.md`.
+
 ## Условия комитов
 Коммит реализации ссылается на тикет, который он закрывает, например feat: запись на свободный слот (#12)

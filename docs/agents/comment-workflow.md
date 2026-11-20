@@ -4,6 +4,8 @@
 Воркфлоу живёт в [`.github/workflows/agent-comment.yml`](../../.github/workflows/agent-comment.yml),
 промпт — в [`.github/agent/prompt.md`](../../.github/agent/prompt.md).
 
+Для новых issue без команды работает отдельный [автотриаж](auto-triage.md).
+
 ## Как вызвать
 
 Оставьте комментарий, первый токен которого — `/agent` или `/oc`, дальше произвольная задача. Команда работает в issue, в обсуждении PR и в комментарии прямо к строке diff:
