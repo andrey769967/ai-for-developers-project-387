@@ -13,6 +13,9 @@ coverage/
 *.log
 npm-debug.log*
 
+# Рабочие файлы агента
+.scratch/
+
 # Playwright
 test-results/
 playwright-report/

@@ -90,5 +90,9 @@ Single-context: `GLOSSARY.md` plus `docs/adr/` at the repo root. See `docs/agent
 
 The first project is `andrey769967/ai-for-developers-project-386`. Its normative spec and decision map stay there and are not rewritten: [#44 «Спека: правила записи»](https://github.com/andrey769967/ai-for-developers-project-386/issues/44) and [#45 «Карта решений: правила записи»](https://github.com/andrey769967/ai-for-developers-project-386/issues/45). The glossary and ADRs are copied into this repo; new tickets go to project-387 only.
 
+### Comment-triggered agent
+
+A `/agent ...` comment on an issue or PR runs the repository agent via GitHub Actions. It picks the right skill (`to-spec`, `to-tickets`, `implement-spec`) and posts a brief back to the thread. See `docs/agents/comment-workflow.md`.
+
 ## Условия комитов
 Коммит реализации ссылается на тикет, который он закрывает, например feat: запись на свободный слот (#12)
