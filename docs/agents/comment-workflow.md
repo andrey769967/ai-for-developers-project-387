@@ -56,10 +56,21 @@
   ключ другого провайдера (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`,
   `OPENROUTER_API_KEY`) — все они пробрасываются в окружение агента.
 - **Variable** `OPENCODE_MODEL` — модель в формате `provider/model`. По умолчанию
-  `opencode/deepseek-v4.1-flash-free`; модель и аккаунт должны быть доступны с ключом.
+  `opencode/deepseek-v4.1-flash` (есть в каталоге OpenCode для этого ключа). Актуальный
+  список моделей виден через `opencode models`; бесплатные варианты в этом каталоге —
+  `opencode/mimo-v2.6-flash-free`, `opencode/nemotron-3.5-lightning-free`,
+  `opencode/big-pickle`.
 
 Без ключа шаг `Run agent` упадёт, но комментарий с ссылкой на лог всё равно
 будет опубликован.
+
+## Share сессии
+
+OpenCode V2 не предоставляет флаг `--share` у `opencode run` и команду `share`
+(проверено по `opencode --help` и официальным документам CLI), поэтому sharing
+сессии не включён. Вместо ссылки на сессию бриф содержит ссылку на лог GitHub
+Actions. Для публичной сессии нужно либо использовать V1, либо отдельно делать
+`opencode session export` и публиковать результат.
 
 ## Границы
 
