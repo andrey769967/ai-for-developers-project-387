@@ -92,7 +92,7 @@ The first project is `andrey769967/ai-for-developers-project-386`. Its normative
 
 ### Comment-triggered agent
 
-A `/agent ...` comment on an issue or PR runs the repository agent via GitHub Actions. It picks the right skill (`to-spec`, `to-tickets`, `implement-spec`) and posts a brief back to the thread. See `docs/agents/comment-workflow.md`.
+A `/agent ...` or `/oc ...` comment on an issue or PR runs the repository agent via GitHub Actions. It picks the right skill (`to-spec`, `to-tickets`, `implement-spec`) and posts a brief back to the thread. See `docs/agents/comment-workflow.md`.
 
 ## Условия комитов
 Коммит реализации ссылается на тикет, который он закрывает, например feat: запись на свободный слот (#12)

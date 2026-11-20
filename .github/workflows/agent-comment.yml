@@ -1,4 +1,4 @@
-# Универсальная точка входа для агента: комментарий `/agent ...` в issue или PR.
+# Универсальная точка входа для агента: комментарий `/agent ...` или `/oc ...` в issue/PR.
 # Агент сам выбирает подходящий скилл, работает с трекером и публикует короткий бриф
 # обратно в ту же нить. hexlet-check.yml не трогаем — он обязателен для Хекслета.
 
@@ -22,7 +22,7 @@ jobs:
     name: /agent
     # Только доверенные авторы. Комментарии от посторонних и ботов не запускают код.
     if: >-
-      startsWith(github.event.comment.body, '/agent') &&
+      (startsWith(github.event.comment.body, '/agent') || startsWith(github.event.comment.body, '/oc')) &&
       contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -78,7 +78,7 @@ jobs:
         run: |
           set -euo pipefail
           {
-            printf '🤖 `/agent` · %s\n\n' "$AGENT_OUTCOME"
+            printf '🤖 `/agent` / `/oc` · %s\n\n' "$AGENT_OUTCOME"
             if [[ -s .scratch/agent-response.md ]]; then
               cat .scratch/agent-response.md
             else
