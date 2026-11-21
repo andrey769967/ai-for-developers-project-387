@@ -109,7 +109,7 @@ docker run --rm -p 3000:3000 call-booking
 
 ## Независимое авторевью pull request
 
-Событие `pull_request` (`opened`, `synchronize`, `reopened`) запускает отдельного ревьюера: он читает спецификацию #3, согласование в #2, тикеты #4–#7, diff и результаты CI, применяет критерии из [`REVIEW.md`](REVIEW.md) и публикует замечания в PR. Ревью не меняет код и не продолжает сессию реализации; публикация идёт отдельным шагом без модели.
+Событие `pull_request` (`opened`, `synchronize`, `reopened`) запускает отдельного ревьюера: он читает спецификацию, обращение, согласование человека и тикеты по ссылкам в теле PR, а также diff и результаты CI, применяет критерии из [`REVIEW.md`](REVIEW.md) и публикует замечания в PR. Ревью не меняет код и не продолжает сессию реализации; публикация идёт отдельным шагом без модели.
 
 Воркфлоу рассчитан на PR из этого же репозитория, включая PR агента (`github-actions[bot]`), но не на fork. Ограничения: `timeout-minutes: 30`, `concurrency` по номеру PR с `cancel-in-progress: true` (новый push отменяет старое ревью), права `contents`/`issues`/`actions`/`checks`/`statuses: read` и `pull-requests: write`. Шаблон тела PR с разделами «Проверки», «Риск» и «Откат» лежит в `.github/pull_request_template.md`. Подробности и чек-лист проверки — в [`docs/agents/auto-review.md`](docs/agents/auto-review.md).
 
