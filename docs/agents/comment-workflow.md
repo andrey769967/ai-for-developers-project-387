@@ -4,7 +4,7 @@
 Воркфлоу живёт в [`.github/workflows/agent-comment.yml`](../../.github/workflows/agent-comment.yml),
 промпт — в [`.github/agent/prompt.md`](../../.github/agent/prompt.md).
 
-Для новых issue без команды работает отдельный [автотриаж](auto-triage.md).
+Для новых issue без команды работает отдельный [автотриаж](auto-triage.md). Независимое ревью PR — тоже отдельный воркфлоу, см. [авторевью](auto-review.md).
 
 ## Как вызвать
 

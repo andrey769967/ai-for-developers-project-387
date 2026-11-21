@@ -98,5 +98,9 @@ A `/agent ...` or `/oc ...` comment on an issue, a PR conversation, or an inline
 
 A new issue from a trusted author is triaged automatically with the `@triage` skill. Bots and issues already labelled `ready-for-agent` are skipped. See `docs/agents/auto-triage.md`.
 
+### Independent auto-review of pull requests
+
+A `pull_request` event runs a separate reviewer with the criteria from `REVIEW.md`; it comments on the PR but never edits code. The PR body template is `.github/pull_request_template.md`. See `docs/agents/auto-review.md`.
+
 ## Условия комитов
 Коммит реализации ссылается на тикет, который он закрывает, например feat: запись на свободный слот (#12)

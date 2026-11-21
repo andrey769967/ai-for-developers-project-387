@@ -107,6 +107,12 @@ docker run --rm -p 3000:3000 call-booking
 
 Ограничения: `timeout-minutes: 30`, `concurrency` по номеру issue с `cancel-in-progress: false`, права `contents: read` и `issues: write`. Модель и ключ те же: переменная `OPENCODE_MODEL` и секрет `OPENCODE_API_KEY`. Подробности — в [`docs/agents/auto-triage.md`](docs/agents/auto-triage.md).
 
+## Независимое авторевью pull request
+
+Событие `pull_request` (`opened`, `synchronize`, `reopened`) запускает отдельного ревьюера: он читает спецификацию #3, согласование в #2, тикеты #4–#7, diff и результаты CI, применяет критерии из [`REVIEW.md`](REVIEW.md) и публикует замечания в PR. Ревью не меняет код и не продолжает сессию реализации; публикация идёт отдельным шагом без модели.
+
+Воркфлоу рассчитан на PR из этого же репозитория, включая PR агента (`github-actions[bot]`), но не на fork. Ограничения: `timeout-minutes: 30`, `concurrency` по номеру PR с `cancel-in-progress: true` (новый push отменяет старое ревью), права `contents`/`issues`/`actions`/`checks`/`statuses: read` и `pull-requests: write`. Шаблон тела PR с разделами «Проверки», «Риск» и «Откат» лежит в `.github/pull_request_template.md`. Подробности и чек-лист проверки — в [`docs/agents/auto-review.md`](docs/agents/auto-review.md).
+
 ## Локальная разработка
 
 ```bash
