@@ -31,6 +31,11 @@ test("гость записывается на свободный слот", asy
   // Подтверждение экрана мало: Booking должен реально сохраниться на сервере
   const response = await request.get("/api/bookings");
   expect(response.ok()).toBeTruthy();
-  const bookings = (await response.json()) as Array<{ guestEmail: string }>;
+  const bookings = (await response.json()) as Array<{ guestEmail: string; topic: string }>;
   expect(bookings.some((booking) => booking.guestEmail === guestEmail)).toBe(true);
+
+  // И тема должна дойти до таблицы владельца через настоящий API, без моков
+  await page.getByRole("button", { name: "Календарь владельца" }).click();
+  const ownerRow = page.getByRole("row", { name: new RegExp(guestEmail) });
+  await expect(ownerRow).toContainText(topic);
 });
