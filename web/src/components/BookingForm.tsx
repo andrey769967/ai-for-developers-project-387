@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { components } from "../lib/api/schema";
+import { BOOKING_TOPIC_MAX_LENGTH } from "../lib/topic";
 
 type Slot = components["schemas"]["Slot"];
 
@@ -85,10 +86,13 @@ export function BookingForm({ slot, meetingTypeName, timezone, onSubmit, onBack 
           type="text"
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
+          maxLength={BOOKING_TOPIC_MAX_LENGTH}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
           placeholder="О чём хотите поговорить?"
         />
-        <p className="mt-1 text-xs text-gray-500">Обязательное поле</p>
+        <p className="mt-1 text-xs text-gray-500">
+          Обязательное поле, до {BOOKING_TOPIC_MAX_LENGTH} символов
+        </p>
       </div>
 
       {error && (

@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { storage } from "../storage/in-memory.js";
 import { createBooking } from "../services/booking.js";
+import { CONFIG } from "../config.js";
 import { ApiError } from "../types.js";
 import type { BookingCreate } from "../types.js";
 
@@ -21,6 +22,15 @@ export async function bookingsRoutes(app: FastifyInstance): Promise<void> {
 
     if (!body?.meetingTypeId || !body?.guestName || !body?.guestEmail || !topic || !body?.startTime) {
       throw new ApiError(400, "Укажите тип встречи, имя, email, тему разговора и время начала");
+    }
+
+    // Unicode code points, not UTF-16 code units: an emoji must not consume a
+    // double limit. Checked after trimming and before startTime is parsed.
+    if ([...topic].length > CONFIG.bookingTopicMaxLength) {
+      throw new ApiError(
+        400,
+        `Тема разговора не может быть длиннее ${CONFIG.bookingTopicMaxLength} символов`,
+      );
     }
 
     const startTime = new Date(body.startTime);

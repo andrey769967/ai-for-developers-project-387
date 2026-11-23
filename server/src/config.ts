@@ -12,6 +12,9 @@ export const CONFIG = {
   bookingWindowDays: 14,
   // Шаг доступных стартов слотов
   slotStepMinutes: 15,
+  // Максимальная длина Booking topic в Unicode code points.
+  // Источник истины — BookingCreate.topic в contract/main.tsp (@maxLength(200)).
+  bookingTopicMaxLength: 200,
   // Минимальная длительность встречи
   minDurationMinutes: 15,
   // Сервер

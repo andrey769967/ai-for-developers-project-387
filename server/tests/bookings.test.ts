@@ -434,4 +434,119 @@ describe("Booking topic", () => {
     expect(bookings).toHaveLength(1);
     expect(bookings[0].topic).toBe(topic);
   });
+
+  it("accepts a topic of exactly 200 characters", async () => {
+    const { mt, startTime } = await appWithSlot();
+    const topic = "а".repeat(200);
+
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/bookings",
+      payload: { meetingTypeId: mt.id, guestName: "A", guestEmail: "a@test.com", topic, startTime },
+    });
+
+    expect(res.statusCode).toBe(201);
+    expect(JSON.parse(res.payload).topic).toBe(topic);
+  });
+
+  it("rejects a topic of 201 characters", async () => {
+    const { mt, startTime } = await appWithSlot();
+
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/bookings",
+      payload: {
+        meetingTypeId: mt.id,
+        guestName: "A",
+        guestEmail: "a@test.com",
+        topic: "а".repeat(201),
+        startTime,
+      },
+    });
+
+    expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.payload)).toEqual({
+      message: "Тема разговора не может быть длиннее 200 символов",
+    });
+  });
+
+  it("counts the limit in Unicode code points, not UTF-16 code units", async () => {
+    const { mt, startTime } = await appWithSlot();
+    // 200 code points, 400 UTF-16 code units: must still pass
+    const topic = "😀".repeat(200);
+
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/bookings",
+      payload: { meetingTypeId: mt.id, guestName: "A", guestEmail: "a@test.com", topic, startTime },
+    });
+
+    expect(res.statusCode).toBe(201);
+    expect(JSON.parse(res.payload).topic).toBe(topic);
+  });
+
+  it("rejects 201 code points of non-BMP characters", async () => {
+    const { mt, startTime } = await appWithSlot();
+
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/bookings",
+      payload: {
+        meetingTypeId: mt.id,
+        guestName: "A",
+        guestEmail: "a@test.com",
+        topic: "😀".repeat(201),
+        startTime,
+      },
+    });
+
+    expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.payload)).toEqual({
+      message: "Тема разговора не может быть длиннее 200 символов",
+    });
+  });
+
+  it("checks required fields first, then topic length, then startTime", async () => {
+    const { mt } = await appWithSlot();
+
+    const missing = await app.inject({
+      method: "POST",
+      url: "/api/bookings",
+      payload: { meetingTypeId: mt.id, guestName: "A", guestEmail: "a@test.com", startTime: "not-a-date" },
+    });
+    expect(missing.statusCode).toBe(400);
+    expect(JSON.parse(missing.payload)).toEqual({ message: missingTopicMessage });
+
+    const tooLong = await app.inject({
+      method: "POST",
+      url: "/api/bookings",
+      payload: {
+        meetingTypeId: mt.id,
+        guestName: "A",
+        guestEmail: "a@test.com",
+        topic: "а".repeat(201),
+        startTime: "not-a-date",
+      },
+    });
+    expect(tooLong.statusCode).toBe(400);
+    expect(JSON.parse(tooLong.payload)).toEqual({
+      message: "Тема разговора не может быть длиннее 200 символов",
+    });
+
+    const invalidStart = await app.inject({
+      method: "POST",
+      url: "/api/bookings",
+      payload: {
+        meetingTypeId: mt.id,
+        guestName: "A",
+        guestEmail: "a@test.com",
+        topic: "Тема",
+        startTime: "not-a-date",
+      },
+    });
+    expect(invalidStart.statusCode).toBe(400);
+    expect(JSON.parse(invalidStart.payload)).toEqual({
+      message: "Время начала должно быть датой в формате ISO 8601",
+    });
+  });
 });
