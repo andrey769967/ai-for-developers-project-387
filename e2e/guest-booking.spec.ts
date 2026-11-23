@@ -6,6 +6,7 @@ import { test, expect } from "@playwright/test";
 test("гость записывается на свободный слот", async ({ page, request }) => {
   const guestName = "E2E Guest";
   const guestEmail = `e2e-${Date.now()}@example.com`;
+  const topic = "Обсудить интеграцию API";
 
   await page.goto("/");
 
@@ -22,6 +23,7 @@ test("гость записывается на свободный слот", asy
 
   await page.getByPlaceholder("Ваше имя").fill(guestName);
   await page.getByPlaceholder("you@example.com").fill(guestEmail);
+  await page.getByPlaceholder("О чём хотите поговорить?").fill(topic);
   await page.getByRole("button", { name: "Записаться" }).click();
 
   await expect(page.getByRole("heading", { name: "Вы записаны!" })).toBeVisible();

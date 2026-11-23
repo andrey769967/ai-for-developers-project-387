@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach, vi } from "vitest";
 import type { FastifyInstance } from "fastify";
-import { createTestApp, createMeetingType } from "./helpers.js";
+import { createTestApp, createMeetingType, bookingBody } from "./helpers.js";
 
 let app: FastifyInstance;
 
@@ -21,7 +21,7 @@ async function book(startTime: string, durationMinutes = 15) {
   return app.inject({
     method: "POST",
     url: "/api/bookings",
-    payload: { meetingTypeId: mt.id, guestName: "A", guestEmail: "a@test.com", startTime },
+    payload: bookingBody({ meetingTypeId: mt.id, guestName: "A", guestEmail: "a@test.com", startTime }),
   });
 }
 
@@ -46,12 +46,12 @@ describe("GET /api/bookings", () => {
     await app.inject({
       method: "POST",
       url: "/api/bookings",
-      payload: { meetingTypeId: mt.id, guestName: "B", guestEmail: "b@test.com", startTime: slots[1].startTime },
+      payload: bookingBody({ meetingTypeId: mt.id, guestName: "B", guestEmail: "b@test.com", startTime: slots[1].startTime }),
     });
     await app.inject({
       method: "POST",
       url: "/api/bookings",
-      payload: { meetingTypeId: mt.id, guestName: "A", guestEmail: "a@test.com", startTime: slots[0].startTime },
+      payload: bookingBody({ meetingTypeId: mt.id, guestName: "A", guestEmail: "a@test.com", startTime: slots[0].startTime }),
     });
 
     const res = await app.inject({ method: "GET", url: "/api/bookings" });
@@ -162,12 +162,12 @@ describe("POST /api/bookings", () => {
     const res = await app.inject({
       method: "POST",
       url: "/api/bookings",
-      payload: {
+      payload: bookingBody({
         meetingTypeId: mt.id,
         guestName: "John Doe",
         guestEmail: "john@example.com",
         startTime: slots[0].startTime,
-      },
+      }),
     });
     expect(res.statusCode).toBe(201);
     const booking = JSON.parse(res.payload);
@@ -182,12 +182,12 @@ describe("POST /api/bookings", () => {
     const res = await app.inject({
       method: "POST",
       url: "/api/bookings",
-      payload: {
+      payload: bookingBody({
         meetingTypeId: "nonexistent",
         guestName: "John",
         guestEmail: "john@example.com",
         startTime: new Date().toISOString(),
-      },
+      }),
     });
     expect(res.statusCode).toBe(404);
     expect(JSON.parse(res.payload)).toEqual({ message: "Тип встречи не найден" });
@@ -202,7 +202,7 @@ describe("POST /api/bookings", () => {
     });
     expect(res.statusCode).toBe(400);
     expect(JSON.parse(res.payload)).toEqual({
-      message: "Укажите тип встречи, имя, email и время начала",
+      message: "Укажите тип встречи, имя, email, тему разговора и время начала",
     });
   });
 
@@ -216,14 +216,14 @@ describe("POST /api/bookings", () => {
     const res1 = await app.inject({
       method: "POST",
       url: "/api/bookings",
-      payload: { meetingTypeId: mt.id, guestName: "A", guestEmail: "a@test.com", startTime: slots[0].startTime },
+      payload: bookingBody({ meetingTypeId: mt.id, guestName: "A", guestEmail: "a@test.com", startTime: slots[0].startTime }),
     });
     expect(res1.statusCode).toBe(201);
 
     const res2 = await app.inject({
       method: "POST",
       url: "/api/bookings",
-      payload: { meetingTypeId: mt.id, guestName: "B", guestEmail: "b@test.com", startTime: slots[0].startTime },
+      payload: bookingBody({ meetingTypeId: mt.id, guestName: "B", guestEmail: "b@test.com", startTime: slots[0].startTime }),
     });
     expect(res2.statusCode).toBe(409);
     expect(JSON.parse(res2.payload)).toEqual({ message: "Это время уже занято, выберите другое" });
@@ -242,7 +242,7 @@ describe("POST /api/bookings", () => {
     const res1 = await app.inject({
       method: "POST",
       url: "/api/bookings",
-      payload: { meetingTypeId: mt15.id, guestName: "A", guestEmail: "a@test.com", startTime: slots[0].startTime },
+      payload: bookingBody({ meetingTypeId: mt15.id, guestName: "A", guestEmail: "a@test.com", startTime: slots[0].startTime }),
     });
     expect(res1.statusCode).toBe(201);
 
@@ -250,7 +250,7 @@ describe("POST /api/bookings", () => {
     const res2 = await app.inject({
       method: "POST",
       url: "/api/bookings",
-      payload: { meetingTypeId: mt30.id, guestName: "B", guestEmail: "b@test.com", startTime: slots[0].startTime },
+      payload: bookingBody({ meetingTypeId: mt30.id, guestName: "B", guestEmail: "b@test.com", startTime: slots[0].startTime }),
     });
     expect(res2.statusCode).toBe(409);
   });
@@ -265,12 +265,12 @@ describe("POST /api/bookings", () => {
     const first = await app.inject({
       method: "POST",
       url: "/api/bookings",
-      payload: {
+      payload: bookingBody({
         meetingTypeId: long.id,
         guestName: "A",
         guestEmail: "a@test.com",
         startTime: "2026-11-16T07:00:00.000Z",
-      },
+      }),
     });
     expect(first.statusCode).toBe(201);
 
@@ -278,12 +278,12 @@ describe("POST /api/bookings", () => {
     const overlap = await app.inject({
       method: "POST",
       url: "/api/bookings",
-      payload: {
+      payload: bookingBody({
         meetingTypeId: short.id,
         guestName: "B",
         guestEmail: "b@test.com",
         startTime: "2026-11-16T07:30:00.000Z",
-      },
+      }),
     });
     expect(overlap.statusCode).toBe(409);
     expect(JSON.parse(overlap.payload)).toEqual({
@@ -294,12 +294,12 @@ describe("POST /api/bookings", () => {
     const backToBack = await app.inject({
       method: "POST",
       url: "/api/bookings",
-      payload: {
+      payload: bookingBody({
         meetingTypeId: short.id,
         guestName: "C",
         guestEmail: "c@test.com",
         startTime: "2026-11-16T08:00:00.000Z",
-      },
+      }),
     });
     expect(backToBack.statusCode).toBe(201);
   });
@@ -315,7 +315,7 @@ describe("POST /api/bookings", () => {
     const res1 = await app.inject({
       method: "POST",
       url: "/api/bookings",
-      payload: { meetingTypeId: mt.id, guestName: "A", guestEmail: "a@test.com", startTime: slots[0].startTime },
+      payload: bookingBody({ meetingTypeId: mt.id, guestName: "A", guestEmail: "a@test.com", startTime: slots[0].startTime }),
     });
     expect(res1.statusCode).toBe(201);
 
@@ -326,8 +326,112 @@ describe("POST /api/bookings", () => {
     const res2 = await app.inject({
       method: "POST",
       url: "/api/bookings",
-      payload: { meetingTypeId: mt.id, guestName: "B", guestEmail: "b@test.com", startTime: backToBackSlot!.startTime },
+      payload: bookingBody({ meetingTypeId: mt.id, guestName: "B", guestEmail: "b@test.com", startTime: backToBackSlot!.startTime }),
     });
     expect(res2.statusCode).toBe(201);
+  });
+});
+
+describe("Booking topic", () => {
+  async function appWithSlot(durationMinutes = 15) {
+    fakeNow();
+    app = await createTestApp();
+    const mt = await createMeetingType(app, "Test", "desc", durationMinutes);
+    const slotsRes = await app.inject({ method: "GET", url: `/api/meeting-types/${mt.id}/slots` });
+    const slots = JSON.parse(slotsRes.payload);
+    return { mt, startTime: slots[0].startTime as string };
+  }
+
+  const missingTopicMessage =
+    "Укажите тип встречи, имя, email, тему разговора и время начала";
+
+  it("rejects a missing topic", async () => {
+    const { mt, startTime } = await appWithSlot();
+
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/bookings",
+      payload: { meetingTypeId: mt.id, guestName: "A", guestEmail: "a@test.com", startTime },
+    });
+
+    expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.payload)).toEqual({ message: missingTopicMessage });
+  });
+
+  it("rejects an empty topic", async () => {
+    const { mt, startTime } = await appWithSlot();
+
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/bookings",
+      payload: { meetingTypeId: mt.id, guestName: "A", guestEmail: "a@test.com", topic: "", startTime },
+    });
+
+    expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.payload)).toEqual({ message: missingTopicMessage });
+  });
+
+  it("rejects a whitespace-only topic", async () => {
+    const { mt, startTime } = await appWithSlot();
+
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/bookings",
+      payload: { meetingTypeId: mt.id, guestName: "A", guestEmail: "a@test.com", topic: "  \n\t ", startTime },
+    });
+
+    expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.payload)).toEqual({ message: missingTopicMessage });
+  });
+
+  it("rejects a non-string topic", async () => {
+    const { mt, startTime } = await appWithSlot();
+
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/bookings",
+      payload: { meetingTypeId: mt.id, guestName: "A", guestEmail: "a@test.com", topic: 42, startTime },
+    });
+
+    expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.payload)).toEqual({ message: missingTopicMessage });
+  });
+
+  it("trims the topic edges and keeps inner spaces and line breaks", async () => {
+    const { mt, startTime } = await appWithSlot();
+
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/bookings",
+      payload: {
+        meetingTypeId: mt.id,
+        guestName: "A",
+        guestEmail: "a@test.com",
+        topic: "  Обсудить  план\nна неделю  ",
+        startTime,
+      },
+    });
+
+    expect(res.statusCode).toBe(201);
+    expect(JSON.parse(res.payload).topic).toBe("Обсудить  план\nна неделю");
+  });
+
+  it("returns the topic in the create response and in the bookings list", async () => {
+    const { mt, startTime } = await appWithSlot();
+    const topic = "Тема для владельца";
+
+    const created = await app.inject({
+      method: "POST",
+      url: "/api/bookings",
+      payload: { meetingTypeId: mt.id, guestName: "A", guestEmail: "a@test.com", topic, startTime },
+    });
+    expect(created.statusCode).toBe(201);
+    expect(JSON.parse(created.payload).topic).toBe(topic);
+
+    const list = await app.inject({ method: "GET", url: "/api/bookings" });
+    expect(list.statusCode).toBe(200);
+    const bookings = JSON.parse(list.payload);
+    expect(bookings).toHaveLength(1);
+    expect(bookings[0].topic).toBe(topic);
   });
 });

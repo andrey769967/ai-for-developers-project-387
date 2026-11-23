@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from "vitest";
 import type { FastifyInstance } from "fastify";
-import { createTestApp, createMeetingType } from "./helpers.js";
+import { createTestApp, createMeetingType, bookingBody } from "./helpers.js";
 
 let app: FastifyInstance;
 
@@ -137,7 +137,7 @@ describe("DELETE /api/meeting-types/:id", () => {
     await app.inject({
       method: "POST",
       url: "/api/bookings",
-      payload: { meetingTypeId: mt.id, guestName: "A", guestEmail: "a@test.com", startTime: slots[0].startTime },
+      payload: bookingBody({ meetingTypeId: mt.id, guestName: "A", guestEmail: "a@test.com", startTime: slots[0].startTime }),
     });
 
     const res = await app.inject({ method: "DELETE", url: `/api/meeting-types/${mt.id}` });

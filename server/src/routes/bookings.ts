@@ -14,8 +14,13 @@ export async function bookingsRoutes(app: FastifyInstance): Promise<void> {
   app.post("/bookings", async (request, reply) => {
     const body = request.body as Partial<BookingCreate>;
 
-    if (!body?.meetingTypeId || !body?.guestName || !body?.guestEmail || !body?.startTime) {
-      throw new ApiError(400, "Укажите тип встречи, имя, email и время начала");
+    // The Booking topic is a snapshot: trim the edges, keep inner spaces and
+    // line breaks, and never HTML-escape. A missing, non-string, empty or
+    // whitespace-only topic counts as a missing required field.
+    const topic = typeof body?.topic === "string" ? body.topic.trim() : "";
+
+    if (!body?.meetingTypeId || !body?.guestName || !body?.guestEmail || !topic || !body?.startTime) {
+      throw new ApiError(400, "Укажите тип встречи, имя, email, тему разговора и время начала");
     }
 
     const startTime = new Date(body.startTime);
@@ -27,6 +32,7 @@ export async function bookingsRoutes(app: FastifyInstance): Promise<void> {
       meetingTypeId: body.meetingTypeId,
       guestName: body.guestName,
       guestEmail: body.guestEmail,
+      topic,
       startTime: startTime.toISOString(),
     };
 

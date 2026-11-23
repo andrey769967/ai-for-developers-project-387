@@ -40,6 +40,8 @@ model Booking {
   meetingTypeName: string;
   guestName: string;
   guestEmail: string;
+  @doc("Booking topic: a snapshot of the conversation topic the Guest sets at booking time; visible only to the Owner")
+  topic: string;
   startTime: utcDateTime;
   endTime: utcDateTime;
   createdAt: utcDateTime;
@@ -50,6 +52,8 @@ model BookingCreate {
   meetingTypeId: string;
   guestName: string;
   guestEmail: string;
+  @doc("Booking topic: the conversation topic the Guest sets at booking time; stored as a snapshot and visible only to the Owner")
+  topic: string;
   startTime: utcDateTime;
 }
 

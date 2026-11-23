@@ -123,6 +123,8 @@ export interface components {
             meetingTypeName: string;
             guestName: string;
             guestEmail: string;
+            /** @description Booking topic: a snapshot of the conversation topic the Guest sets at booking time; visible only to the Owner */
+            topic: string;
             /** Format: date-time */
             startTime: string;
             /** Format: date-time */
@@ -135,6 +137,8 @@ export interface components {
             meetingTypeId: string;
             guestName: string;
             guestEmail: string;
+            /** @description Booking topic: the conversation topic the Guest sets at booking time; stored as a snapshot and visible only to the Owner */
+            topic: string;
             /** Format: date-time */
             startTime: string;
         };
