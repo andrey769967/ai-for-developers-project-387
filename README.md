@@ -113,6 +113,12 @@ docker run --rm -p 3000:3000 call-booking
 
 Воркфлоу рассчитан на PR из этого же репозитория, включая PR агента (`github-actions[bot]`), но не на fork. Ограничения: `timeout-minutes: 30`, `concurrency` по номеру PR с `cancel-in-progress: true` (новый push отменяет старое ревью), права `contents`/`issues`/`actions`/`checks`/`statuses: read` и `pull-requests: write`. Шаблон тела PR с разделами «Проверки», «Риск» и «Откат» лежит в `.github/pull_request_template.md`. Подробности и чек-лист проверки — в [`docs/agents/auto-review.md`](docs/agents/auto-review.md).
 
+## Предел запусков на pull request
+
+До вызова модели оба PR-воркфлоу (`agent-comment.yml` и `auto-review.yml`) считают допущенные попытки по истории GitHub Actions и общему номеру PR. Лимит задаётся переменной `OPENCODE_PR_ATTEMPT_LIMIT` (по умолчанию `3`). В счёт идут команды `/agent` / `/oc` в обсуждении и в diff, автоматическое ревью, отмены, таймауты и Re-run; комментарии в issue без PR бюджетом не ограничиваются.
+
+Источник счётчика — только Actions API с правом `actions: read`: текст комментария и файлы PR на него не влияют. Когда лимит исчерпан, job модели получает `skipped` до установки CLI и передачи ключа, а отдельный шаг без модели публикует в PR причину (`limit_exhausted`, `timeout`, `infra`, `agent_failed`), последний SHA, число попыток и ссылку на логи с номером попытки. Статус в отчёте — «нужен человек», автоматического цикла исправлений нет. Новый PR получает свежий бюджет.
+
 ## Локальная разработка
 
 ```bash

@@ -4,6 +4,8 @@
 
 name: Auto-review pull requests
 
+run-name: agent review PR #${{ github.event.pull_request.number }}
+
 on:
   pull_request:
     types: [opened, synchronize, reopened]
@@ -16,28 +18,123 @@ permissions:
   statuses: read
   pull-requests: write
 
-concurrency:
-  group: auto-review-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
-
 jobs:
+  budget-guard:
+    name: Budget guard
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      issues: read
+      pull-requests: read
+    outputs:
+      allowed: ${{ steps.decide.outputs.allowed }}
+      reason: ${{ steps.decide.outputs.reason }}
+      used: ${{ steps.decide.outputs.used }}
+      limit: ${{ steps.decide.outputs.limit }}
+      pr: ${{ steps.decide.outputs.pr }}
+      last_sha: ${{ steps.decide.outputs.last_sha }}
+    steps:
+      - name: Count admitted attempts for this PR
+        id: decide
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          LIMIT: ${{ vars.OPENCODE_PR_ATTEMPT_LIMIT || '3' }}
+        run: |
+          set -euo pipefail
+
+          limit="$LIMIT"
+          if ! [[ "$limit" =~ ^[0-9]+$ ]]; then
+            limit=3
+          fi
+
+          pr="$PR_NUMBER"
+          last_sha=$(gh pr view "$pr" --json headRefOid --jq .headRefOid 2>/dev/null || printf '%s' "${{ github.event.pull_request.head.sha }}")
+
+          write_output() {
+            {
+              printf 'allowed=%s\n' "$1"
+              printf 'reason=%s\n' "$2"
+              printf 'used=%s\n' "$3"
+              printf 'limit=%s\n' "$limit"
+              printf 'pr=%s\n' "$pr"
+              printf 'last_sha=%s\n' "$last_sha"
+            } >> "$GITHUB_OUTPUT"
+          }
+
+          repo="$GITHUB_REPOSITORY"
+          raw_runs="$RUNNER_TEMP/raw-runs.ndjson"
+          runs="$RUNNER_TEMP/pr-runs.json"
+          jobs="$RUNNER_TEMP/pr-jobs.ndjson"
+          : > "$raw_runs"
+          : > "$jobs"
+
+          api_ok=yes
+          for wf in agent-comment.yml auto-review.yml; do
+            if ! gh api --paginate "repos/$repo/actions/workflows/$wf/runs?per_page=100" \
+              --jq '.workflow_runs[]' >> "$raw_runs"; then
+              api_ok=no
+            fi
+          done
+
+          if [[ "$api_ok" != "yes" ]] || ! jq -s --arg pr "$pr" '
+            map(select(.event == "issue_comment" or .event == "pull_request_review_comment" or .event == "pull_request"))
+            | map(select(
+                (any(.pull_requests[]?; (.number | tostring) == $pr)) or
+                ((.name // .display_title // "") | test("#" + $pr + "([^0-9]|$)"))
+              ))
+            | unique_by(.id)
+            | map({id, run_attempt})
+          ' "$raw_runs" > "$runs"; then
+            write_output false infra unknown
+            exit 0
+          fi
+
+          while IFS= read -r id; do
+            [[ -z "$id" ]] && continue
+            if ! gh api --paginate "repos/$repo/actions/runs/$id/jobs?filter=all&per_page=100" \
+              --jq '.jobs[]' >> "$jobs"; then
+              api_ok=no
+            fi
+          done < <(jq -r '.[].id' "$runs")
+
+          if [[ "$api_ok" != "yes" ]]; then
+            write_output false infra unknown
+            exit 0
+          fi
+
+          used=$(jq -s --argjson cur "$GITHUB_RUN_ID" --argjson curatt "$GITHUB_RUN_ATTEMPT" '
+            group_by([.run_id, .run_attempt])
+            | map(select((.[0].run_id != $cur) or (.[0].run_attempt < $curatt)))
+            | map(select(any(.[];
+                (.name == "agent-model" or .name == "review-model") and
+                (.conclusion != "skipped")
+              )))
+            | map({run_id: .[0].run_id, attempt: .[0].run_attempt})
+            | unique_by([.run_id, .attempt])
+            | length
+          ' "$jobs")
+
+          if (( used >= limit )); then
+            write_output false limit_exhausted "$used"
+          else
+            write_output true ok "$used"
+          fi
+
   review:
-    name: Independent review
-    # Только PR из этого же репозитория: fork не получает секрет модели.
-    # PR агента создаётся github-actions[bot], поэтому разрешаем и его,
-    # но не всех ботов подряд.
+    name: review-model
+    needs: budget-guard
     if: >-
+      needs.budget-guard.outputs.allowed == 'true' &&
       github.event.pull_request.head.repo.full_name == github.repository &&
       (contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.pull_request.author_association) ||
        github.event.pull_request.user.login == 'github-actions[bot]')
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    env:
-      OPENCODE_MODEL: ${{ vars.OPENCODE_MODEL || 'opencode/deepseek-v4.1-flash' }}
-      OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
-      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+    concurrency:
+      group: auto-review-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     steps:
       - name: Checkout PR head
         uses: actions/checkout@v7
@@ -93,12 +190,28 @@ jobs:
             cat .scratch/review-context/checks.txt
           } > "$RUNNER_TEMP/review-prompt.md"
 
+      - name: Preflight model key
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${OPENCODE_API_KEY:-}" ]]; then
+            echo "OPENCODE_API_KEY is empty" >&2
+            exit 1
+          fi
+
       - name: Install OpenCode
         run: npm install -g @opencode/cli
 
       - name: Run independent reviewer
         id: reviewer
         # GH_TOKEN намеренно не передаётся: только чтение файлов и git-диффа.
+        env:
+          OPENCODE_MODEL: ${{ vars.OPENCODE_MODEL || 'opencode/deepseek-v4.1-flash' }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
           set -uo pipefail
           opencode run --model "$OPENCODE_MODEL" "$(cat "$RUNNER_TEMP/review-prompt.md")"
@@ -140,3 +253,76 @@ jobs:
                 --field body="$body" > /dev/null
             done
           fi
+
+  report:
+    name: Budget report
+    needs: [budget-guard, review]
+    if: >-
+      always() &&
+      needs.budget-guard.outputs.pr != '' &&
+      (needs.budget-guard.outputs.reason != 'ok' ||
+       needs.review.result == 'failure' ||
+       needs.review.result == 'cancelled')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GUARD_REASON: ${{ needs.budget-guard.outputs.reason }}
+      USED: ${{ needs.budget-guard.outputs.used }}
+      LIMIT: ${{ needs.budget-guard.outputs.limit }}
+      PR_NUMBER: ${{ needs.budget-guard.outputs.pr }}
+      LAST_SHA: ${{ needs.budget-guard.outputs.last_sha }}
+      MODEL_RESULT: ${{ needs.review.result }}
+      RUN_ID: ${{ github.run_id }}
+      RUN_ATTEMPT: ${{ github.run_attempt }}
+      REPO: ${{ github.repository }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}
+    steps:
+      - name: Classify and publish terminal reason
+        run: |
+          set -euo pipefail
+
+          reason="$GUARD_REASON"
+          detail=""
+          if [[ "$reason" == "ok" ]]; then
+            model_jobs=$(gh api "repos/$REPO/actions/runs/$RUN_ID/attempts/$RUN_ATTEMPT/jobs" \
+              --jq '.jobs[] | select(.name == "review-model")' 2>/dev/null || true)
+            conclusion=$(printf '%s\n' "$model_jobs" | jq -r '.conclusion // empty' 2>/dev/null || true)
+            case "$conclusion" in
+              timed_out)
+                reason=timeout
+                ;;
+              cancelled)
+                reason=agent_failed
+                detail="Запуск модели отменён до завершения (cancelled)."
+                ;;
+              *)
+                reason=agent_failed
+                ;;
+            esac
+            if printf '%s\n' "$model_jobs" | jq -e '
+              .steps[]? | select(.name == "Preflight model key" or .name == "Install OpenCode") | select(.conclusion == "failure")
+            ' >/dev/null 2>&1; then
+              reason=infra
+            fi
+          fi
+
+          {
+            printf '🤖 Предел запусков на PR · %s\n\n' "$reason"
+            printf 'Статус: нужен человек.\n'
+            printf 'Причина: %s\n' "$reason"
+            if [[ -n "$detail" ]]; then
+              printf 'Детали: %s\n' "$detail"
+            fi
+            printf 'PR: #%s\n' "$PR_NUMBER"
+            printf 'Последний SHA: %s\n' "$LAST_SHA"
+            printf 'Попытки: %s/%s\n' "$USED" "$LIMIT"
+            printf 'Логи: %s\n' "$RUN_URL"
+            printf '\nДействие: человек решает, продолжать ли. Автоматического цикла исправлений нет.\n'
+          } > "$RUNNER_TEMP/budget-report.md"
+          head -c 60000 "$RUNNER_TEMP/budget-report.md" > "$RUNNER_TEMP/budget-report-trimmed.md"
+          gh pr comment "$PR_NUMBER" --body-file "$RUNNER_TEMP/budget-report-trimmed.md"
