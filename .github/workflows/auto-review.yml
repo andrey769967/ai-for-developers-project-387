@@ -221,6 +221,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           REVIEW_OUTCOME: ${{ steps.reviewer.outcome }}
         run: |
@@ -250,6 +251,8 @@ jobs:
                 --field path="$path" \
                 --field line="$line" \
                 --field side="$side" \
+                --field commit_id="$PR_HEAD_SHA" \
+                --field subject_type=line \
                 --field body="$body" > /dev/null
             done
           fi
@@ -325,4 +328,4 @@ jobs:
             printf '\nДействие: человек решает, продолжать ли. Автоматического цикла исправлений нет.\n'
           } > "$RUNNER_TEMP/budget-report.md"
           head -c 60000 "$RUNNER_TEMP/budget-report.md" > "$RUNNER_TEMP/budget-report-trimmed.md"
-          gh pr comment "$PR_NUMBER" --body-file "$RUNNER_TEMP/budget-report-trimmed.md"
+          gh pr comment "$PR_NUMBER" --repo "$REPO" --body-file "$RUNNER_TEMP/budget-report-trimmed.md"
