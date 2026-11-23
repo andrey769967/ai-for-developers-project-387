@@ -209,7 +209,7 @@ jobs:
               problem=$(jq -r '.problem // "не указано"' "$AUDIT/finding.json")
               action=$(jq -r '.action // "не указано"' "$AUDIT/finding.json")
               evidence=$(jq -r '.evidence // ""' "$AUDIT/finding.json")
-              if [[ "$training" == "true" ]]; then
+              if [[ "$training" == "true" && "$title" != "[УЧЕБНЫЙ]"* ]]; then
                 title="[УЧЕБНЫЙ] $title"
               fi
               {
