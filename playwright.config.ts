@@ -7,10 +7,10 @@ export default defineConfig({
   testDir: "./e2e",
   timeout: 30_000,
   retries: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? [["list"], ["github"]] : [["list"]],
+  reporter: process.env.CI ? [["list"], ["github"], ["html"]] : [["list"]],
   use: {
     baseURL: `http://127.0.0.1:${PORT}`,
-    trace: "on-first-retry",
+    trace: "on",
   },
   // Настоящий сервер с собранным фронтендом: никаких моков API.
   webServer: {
