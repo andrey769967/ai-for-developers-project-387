@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.1.0](https://github.com/andrey769967/ai-for-developers-project-387/compare/v1.0.0...v1.1.0) (2026-11-23)
+
+
+### Features
+
+* гость указывает тему разговора при записи ([#4](https://github.com/andrey769967/ai-for-developers-project-387/issues/4)) ([f4c5fb4](https://github.com/andrey769967/ai-for-developers-project-387/commit/f4c5fb43090c3308cd17604add8c71c70ba40174))
+* ограничить тему разговора 200 символами ([#6](https://github.com/andrey769967/ai-for-developers-project-387/issues/6)) ([07fa5d5](https://github.com/andrey769967/ai-for-developers-project-387/commit/07fa5d5f3f852f8f39532b7eb68d8bc986b4b526))
+* тема разговора в таблице владельца ([#5](https://github.com/andrey769967/ai-for-developers-project-387/issues/5)) ([1991b3e](https://github.com/andrey769967/ai-for-developers-project-387/commit/1991b3e0da095a482b60d14d3c727a8f8bddf924))
+
 ## 1.0.0 (2026-11-13)
 
 
