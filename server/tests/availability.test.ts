@@ -5,6 +5,7 @@ import { getAvailableSlots } from "../src/services/availability.js";
 import { getWorkingHours } from "../src/services/time-window.js";
 import { CONFIG } from "../src/config.js";
 import { ApiError } from "../src/types.js";
+import { TEST_BOOKING_TOPIC } from "./helpers.js";
 
 let app: FastifyInstance;
 
@@ -76,6 +77,7 @@ describe("getAvailableSlots", () => {
       meetingTypeName: mt.name,
       guestName: "Test",
       guestEmail: "test@test.com",
+      topic: TEST_BOOKING_TOPIC,
       startTime: slotsBefore[0].startTime,
       endTime: slotsBefore[0].endTime,
       createdAt: new Date().toISOString(),
@@ -181,6 +183,7 @@ describe("Slot grid rules", () => {
       meetingTypeName: long.name,
       guestName: "Guest",
       guestEmail: "guest@example.com",
+      topic: TEST_BOOKING_TOPIC,
       startTime: "2026-11-16T07:00:00.000Z",
       endTime: "2026-11-16T08:00:00.000Z",
       createdAt: new Date().toISOString(),

@@ -59,12 +59,13 @@ export function GuestPage() {
   });
 
   const bookingMutation = useMutation({
-    mutationFn: async (params: { guestName: string; guestEmail: string }) => {
+    mutationFn: async (params: { guestName: string; guestEmail: string; topic: string }) => {
       const { data, error } = await client.POST("/api/bookings", {
         body: {
           meetingTypeId: selectedType!.id,
           guestName: params.guestName,
           guestEmail: params.guestEmail,
+          topic: params.topic,
           startTime: selectedSlot!.startTime,
         },
       });
@@ -144,8 +145,8 @@ export function GuestPage() {
           meetingTypeName={selectedType.name}
           timezone={timezone}
           onBack={() => setStep("slots")}
-          onSubmit={async (name, email) => {
-            await bookingMutation.mutateAsync({ guestName: name, guestEmail: email });
+          onSubmit={async (name, email, topic) => {
+            await bookingMutation.mutateAsync({ guestName: name, guestEmail: email, topic });
           }}
         />
       </div>

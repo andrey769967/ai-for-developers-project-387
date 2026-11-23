@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach, vi } from "vitest";
 import type { FastifyInstance } from "fastify";
-import { createTestApp, createMeetingType } from "./helpers.js";
+import { createTestApp, createMeetingType, bookingBody } from "./helpers.js";
 import { storage } from "../src/storage/in-memory.js";
 import { getAvailableSlots } from "../src/services/availability.js";
 import {
@@ -100,13 +100,13 @@ describe("createBooking Booking window", () => {
     const response = await app.inject({
       method: "POST",
       url: "/api/bookings",
-      payload: {
+      payload: bookingBody({
         meetingTypeId: meetingType.id,
         guestName: "Guest",
         guestEmail: "guest@example.com",
         // 00:30 Moscow on 14 Nov
         startTime: "2026-11-13T21:30:00.000Z",
-      },
+      }),
     });
 
     expect(response.statusCode).toBe(400);

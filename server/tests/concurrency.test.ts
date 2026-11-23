@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from "vitest";
 import type { FastifyInstance } from "fastify";
-import { createTestApp, createMeetingType } from "./helpers.js";
+import { createTestApp, createMeetingType, bookingBody } from "./helpers.js";
 
 let app: FastifyInstance;
 
@@ -17,12 +17,12 @@ describe("Concurrent booking requests", () => {
     const slots = JSON.parse(slotsRes.payload);
     expect(slots.length).toBeGreaterThan(0);
 
-    const payload = {
+    const payload = bookingBody({
       meetingTypeId: mt.id,
       guestName: "Guest",
       guestEmail: "guest@test.com",
       startTime: slots[0].startTime,
-    };
+    });
 
     // Fire two requests concurrently
     const [res1, res2] = await Promise.all([
@@ -42,12 +42,12 @@ describe("Concurrent booking requests", () => {
     const slots = JSON.parse(slotsRes.payload);
     expect(slots.length).toBeGreaterThan(0);
 
-    const payload = {
+    const payload = bookingBody({
       meetingTypeId: mt.id,
       guestName: "Guest",
       guestEmail: "guest@test.com",
       startTime: slots[0].startTime,
-    };
+    });
 
     // Fire five requests concurrently
     const results = await Promise.all(
@@ -78,12 +78,12 @@ describe("Concurrent booking requests", () => {
         app.inject({
           method: "POST",
           url: "/api/bookings",
-          payload: {
+          payload: bookingBody({
             meetingTypeId: mt.id,
             guestName: "Guest",
             guestEmail: "guest@test.com",
             startTime: slot.startTime,
-          },
+          }),
         }),
       ),
     );

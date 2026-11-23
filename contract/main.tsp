@@ -7,7 +7,7 @@ using TypeSpec.Http;
 using TypeSpec.OpenAPI;
 
 @service(#{title: "Call Booking API"})
-@doc("Call Booking API. Spec constants: timezone=Europe/Moscow UTC+3, working hours 09:00-18:00, booking window 14 days from today, slot step 15 minutes, slot duration = meeting type duration (multiple of 15, 15-540 minutes), back-to-back allowed, overlaps forbidden across all types, owner is predefined, no auth.")
+@doc("Call Booking API. Spec constants: timezone=Europe/Moscow UTC+3, working hours 09:00-18:00, booking window 14 days from today, slot step 15 minutes, slot duration = meeting type duration (multiple of 15, 15-540 minutes), back-to-back allowed, overlaps forbidden across all types, owner is predefined, booking topic max 200 characters, no auth.")
 namespace CallBooking;
 
 @doc("Meeting type")
@@ -40,6 +40,8 @@ model Booking {
   meetingTypeName: string;
   guestName: string;
   guestEmail: string;
+  @doc("Booking topic: a snapshot of the conversation topic the Guest sets at booking time; visible only to the Owner")
+  topic: string;
   startTime: utcDateTime;
   endTime: utcDateTime;
   createdAt: utcDateTime;
@@ -50,6 +52,10 @@ model BookingCreate {
   meetingTypeId: string;
   guestName: string;
   guestEmail: string;
+  @doc("Booking topic: a snapshot of the conversation topic the Guest sets at booking time; visible only to the Owner. Required, trimmed by the server, at most 200 characters counted in Unicode code points.")
+  @minLength(1)
+  @maxLength(200)
+  topic: string;
   startTime: utcDateTime;
 }
 

@@ -57,6 +57,8 @@ export async function createBooking(data: BookingCreate): Promise<Booking> {
       meetingTypeName: meetingType.name,
       guestName: data.guestName,
       guestEmail: data.guestEmail,
+      // Already normalized by the route; stored as a Booking snapshot.
+      topic: data.topic,
       startTime: startTime.toISOString(),
       endTime: endTime.toISOString(),
       createdAt: now.toISOString(),

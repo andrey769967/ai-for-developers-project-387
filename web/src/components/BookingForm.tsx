@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { components } from "../lib/api/schema";
+import { BOOKING_TOPIC_MAX_LENGTH } from "../lib/topic";
 
 type Slot = components["schemas"]["Slot"];
 
@@ -7,13 +8,14 @@ interface Props {
   slot: Slot;
   meetingTypeName: string;
   timezone: string;
-  onSubmit: (guestName: string, guestEmail: string) => Promise<void>;
+  onSubmit: (guestName: string, guestEmail: string, topic: string) => Promise<void>;
   onBack: () => void;
 }
 
 export function BookingForm({ slot, meetingTypeName, timezone, onSubmit, onBack }: Props) {
   const [guestName, setGuestName] = useState("");
   const [guestEmail, setGuestEmail] = useState("");
+  const [topic, setTopic] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -33,10 +35,14 @@ export function BookingForm({ slot, meetingTypeName, timezone, onSubmit, onBack 
       setError("Заполните все поля");
       return;
     }
+    if (!topic.trim()) {
+      setError("Укажите тему разговора");
+      return;
+    }
     setSubmitting(true);
     setError(null);
     try {
-      await onSubmit(guestName.trim(), guestEmail.trim());
+      await onSubmit(guestName.trim(), guestEmail.trim(), topic.trim());
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Ошибка при создании записи";
       setError(message);
@@ -72,6 +78,21 @@ export function BookingForm({ slot, meetingTypeName, timezone, onSubmit, onBack 
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
           placeholder="you@example.com"
         />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Тема разговора</label>
+        <input
+          type="text"
+          value={topic}
+          onChange={(e) => setTopic(e.target.value)}
+          maxLength={BOOKING_TOPIC_MAX_LENGTH}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+          placeholder="О чём хотите поговорить?"
+        />
+        <p className="mt-1 text-xs text-gray-500">
+          Обязательное поле, до {BOOKING_TOPIC_MAX_LENGTH} символов
+        </p>
       </div>
 
       {error && (
